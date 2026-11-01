@@ -151,7 +151,17 @@ onNet("mb-vehicledamage:repairTires", async () => {
   }
   if (veh === 0) return;
 
-  // Play a repair animation.
+  // Crouch first, then play the repair animation.
+  RequestAnimSet("move_crouch_proto");
+  let crouchTries = 0;
+  while (!HasAnimSetLoaded("move_crouch_proto") && crouchTries < 100) {
+    await sleep(10);
+    crouchTries += 1;
+  }
+  if (HasAnimSetLoaded("move_crouch_proto")) {
+    SetPedMovementClipset(ped, "move_crouch_proto", 0.5);
+  }
+
   const dict = "mini@repair";
   const clip = "fixing_a_player";
   RequestAnimDict(dict);
@@ -165,6 +175,7 @@ onNet("mb-vehicledamage:repairTires", async () => {
   }
   await sleep(5000);
   ClearPedTasks(ped);
+  ResetPedMovementClipset(ped, 0.5);
 
   const count = GetVehicleNumberOfWheels(veh);
   for (let i = 0; i < count; i++) SetVehicleTyreFixed(veh, i);

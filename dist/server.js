@@ -30,19 +30,8 @@ var SourceLock = class {
 		this.hits.delete(source);
 	}
 };
-// ../../../node_modules/@aicore-fivem/lib/src/shared/wait.ts
-function sleep(ms) {
-	return new Promise((resolve) => setTimeout(resolve, ms));
-}
-// ../../../node_modules/@aicore-fivem/lib/src/shared/strict.ts
-function readFinite(value) {
-	return typeof value == "number" && Number.isFinite(value) ? value : null;
-}
-// ../../../node_modules/@aicore-fivem/lib/src/shared/action.ts
-const fail = (error) => ({
-	ok: !1,
-	error
-}), randomInt = (min, max) => min + Math.floor(Math.random() * (max - min + 1)), isPublic = (rule) => rule.jobs.length === 0 && rule.gangs.length === 0, isObject = (value) => typeof value == "object" && !!value && !Array.isArray(value);
+// ../../../node_modules/@aicore-fivem/lib/src/shared/access.ts
+const isPublic = (rule) => rule.jobs.length === 0 && rule.gangs.length === 0, isObject = (value) => typeof value == "object" && !!value && !Array.isArray(value);
 function readRecords(raw, readOne) {
 	let out = new Map();
 	if (!isObject(raw)) return out;
@@ -247,16 +236,6 @@ const CORE = {
 	recommendationEvent: "ai-core:admin:recommendation",
 	worldEvent: (resource) => `${resource}:admin:world`,
 	worldChangesCallback: (resource) => `${resource}:admin:worldChanges`
-}, LIB_UI = {
-	resource: "ai-lib",
-	notifyEvent: "ai-lib:client:notify",
-	promptPressedEvent: "ai-lib:client:promptPressed",
-	cancelProgressEvent: "ai-lib:client:cancelProgress",
-	progressForCallback: "ai-lib:progressFor",
-	progressForCancelEvent: "ai-lib:client:progressForCancel",
-	minigameForCallback: "ai-lib:minigameFor",
-	zoneEvent: "ai-lib:client:zone",
-	modelPointEvent: "ai-lib:client:modelPoint"
 }, named = new Set();
 function registerExport(name, handler) {
 	named.add(name), globalThis.exports(name, handler);
@@ -295,13 +274,8 @@ function loadLocaleTexts(resource = GetCurrentResourceName()) {
 }
 // ../../../node_modules/@aicore-fivem/lib/src/fivem/callbackNames.ts
 const requestEvent = (name) => `aicore:cb:${name}`, responseEvent = (resource) => `aicore:cbr:${resource}`;
-// ../../../node_modules/@aicore-fivem/lib/src/server/position.ts
-function isNear(source, point, metres) {
-	let [x = 0, y = 0, z = 0] = GetEntityCoords(GetPlayerPed(String(source))), dx = x - point.x, dy = y - point.y, dz = z - point.z;
-	return dx * dx + dy * dy + dz * dz <= metres * metres;
-}
 resourceExport(CORE.resource);
-const log$5 = createLogger(GetCurrentResourceName()), gates = new Set();
+const log$6 = createLogger(GetCurrentResourceName()), gates = new Set();
 on("playerDropped", () => {
 	let source = Number(globalThis.source);
 	for (let gate of gates) gate.release(source);
@@ -342,11 +316,11 @@ var ClientGate = class {
 		this.refusals.set(source, {
 			at: now,
 			skipped: 0
-		}), log$5.warn(`${this.name} refused for ${GetPlayerName(String(source))} (${source}): ${typeof reason == "string" ? reason : reason()}${more}`);
+		}), log$6.warn(`${this.name} refused for ${GetPlayerName(String(source))} (${source}): ${typeof reason == "string" ? reason : reason()}${more}`);
 	}
 };
 // ../../../node_modules/@aicore-fivem/lib/src/server/callback.ts
-const log$4 = createLogger(GetCurrentResourceName()), resource$1 = GetCurrentResourceName(), REFUSED = Symbol("refused");
+const log$5 = createLogger(GetCurrentResourceName()), resource$1 = GetCurrentResourceName(), REFUSED = Symbol("refused");
 function onClientCallback(name, first, second) {
 	let [handler, options] = typeof first == "function" ? [first, second ?? {}] : [second, first], gate = new ClientGate(name, options, 20);
 	onNet(requestEvent(name), async (caller, id, ...raw) => {
@@ -358,30 +332,15 @@ function onClientCallback(name, first, second) {
 			let result = await gate.run(source, REFUSED, () => handler(source, ...args));
 			result === REFUSED ? emitNet(responseEvent(caller), source, id, !1, null) : emitNet(responseEvent(caller), source, id, !0, result ?? null);
 		} catch (error) {
-			log$4.error(`callback ${name} failed for ${source}`, error), emitNet(responseEvent(caller), source, id, !1, null);
+			log$5.error(`callback ${name} failed for ${source}`, error), emitNet(responseEvent(caller), source, id, !1, null);
 		}
 	});
 }
 const pending = new Map();
-let nextId = 0;
 onNet(responseEvent(resource$1), (id, ok, result) => {
 	let entry = typeof id == "number" ? pending.get(id) : void 0;
 	entry && entry.source === Number(globalThis.source) && (pending.delete(id), clearTimeout(entry.timer), ok === !0 ? entry.resolve(result) : entry.reject(Error("client callback failed")));
 });
-function triggerClientCallback(name, source, args = [], timeoutMs = 3e4) {
-	let id = ++nextId;
-	return new Promise((resolve, reject) => {
-		let timer = setTimeout(() => {
-			pending.delete(id), reject(Error(`client callback ${name} timed out for ${source}`));
-		}, timeoutMs);
-		pending.set(id, {
-			source,
-			resolve,
-			reject,
-			timer
-		}), emitNet(requestEvent(name), source, resource$1, id, ...args);
-	});
-}
 // ../../../node_modules/@aicore-fivem/lib/src/server/admin/patch.ts
 function toPatch(value) {
 	if (!isRecord(value) || typeof value.file != "string") return null;
@@ -424,7 +383,7 @@ function toPatch(value) {
 		default: return null;
 	}
 }
-const clone = (value) => value === void 0 ? value : JSON.parse(JSON.stringify(value)), core$25 = resourceExport(CORE.resource), ERR = {
+const clone = (value) => value === void 0 ? value : JSON.parse(JSON.stringify(value)), core$24 = resourceExport(CORE.resource), ERR = {
 	type: "ADMIN_ERR_TYPE",
 	range: "ADMIN_ERR_RANGE",
 	length: "ADMIN_ERR_LENGTH",
@@ -438,7 +397,7 @@ const clone = (value) => value === void 0 ? value : JSON.parse(JSON.stringify(va
 		if (cached && Date.now() - cached.at < 2e3) return cached.values.size > 0 ? cached.values : null;
 		let list = [];
 		try {
-			list = core$25.GetLookupValues(source);
+			list = core$24.GetLookupValues(source);
 		} catch {}
 		let values = new Set(Array.isArray(list) ? list.filter((v) => typeof v == "string") : []);
 		return this.lists.set(source, {
@@ -703,7 +662,7 @@ function writeSchema(resource, name, text, log) {
 	(0, node_fs_promises.mkdir)(dir, { recursive: !0 }).then(() => (0, node_fs_promises.writeFile)(`${dir}/${name}.schema.json`, text, "utf8")).catch((error) => log.error(`writing ${resource}/${path} failed`, error));
 }
 // ../../../node_modules/@aicore-fivem/lib/src/server/admin/panel.ts
-const core$24 = resourceExport(CORE.resource);
+const core$23 = resourceExport(CORE.resource);
 var AdminPanel = class {
 	schema;
 	data = new Map();
@@ -722,7 +681,7 @@ var AdminPanel = class {
 		registerExport("AdminPanelSnapshot", () => this.snapshot()), registerExport("AdminPanelData", () => this.dataSnapshot()), registerExport("AdminPanelSummary", () => this.summary()), registerExport("AdminPanelApply", (admin, patch) => this.apply(admin, patch)), onClientCallback(ADMIN.worldChangesCallback(this.resource), () => Object.fromEntries(this.worldChanges), { rate: {
 			count: 4,
 			windowMs: 1e4
-		} }), setImmediate(() => core$24.RegisterAdminPanel(this.resource));
+		} }), setImmediate(() => core$23.RegisterAdminPanel(this.resource));
 	}
 	get(file) {
 		return this.data.get(file) ?? {};
@@ -836,7 +795,7 @@ var AdminPanel = class {
 		let spec = this.schema.files[file], data = this.get(file), value = key === void 0 ? data : data[key] ?? null;
 		this.dataFiles.get(file)?.write(data), this.views.changed(file, key, value);
 		for (let handler of this.handlers.get(file) ?? []) handler(key, value);
-		if (core$24.AdminPanelChanged({
+		if (core$23.AdminPanelChanged({
 			resource: this.resource,
 			file,
 			key,
@@ -866,31 +825,22 @@ function labelOf(record, path) {
 	}
 	return typeof at == "string" && at !== "" ? at : null;
 }
-// ../../../node_modules/@aicore-fivem/lib/src/server/notify.ts
-function notify(source, text, kind = "info", duration) {
-	let notification = {
-		text,
-		kind,
-		duration
-	};
-	emitNet(LIB_UI.notifyEvent, source, notification);
-}
 // ../../../node_modules/@aicore-fivem/lib/src/server/inventory.ts
-const core$23 = resourceExport(CORE.resource), inventory = {
-	addItem: (inv, item, count = 1, metadata, slot) => core$23.AddItem(inv, item, count, metadata, slot),
-	removeItem: (inv, item, count = 1, metadata, slot) => core$23.RemoveItem(inv, item, count, metadata, slot),
-	getItemCount: (inv, item, metadata) => core$23.GetItemCount(inv, item, metadata),
-	hasItem: (inv, item, count = 1) => core$23.HasItem(inv, item, count),
-	canCarryItem: (inv, item, count = 1, metadata) => core$23.CanCarryItem(inv, item, count, metadata),
-	getItems: (inv) => core$23.GetItems(inv),
-	clearInventory: (inv) => core$23.ClearInventory(inv),
-	registerStash: (name, label, slots, maxWeight, jobs = []) => core$23.RegisterStash(name, label, slots, maxWeight, jobs),
-	openInventory: (source, inv) => core$23.OpenInventory(source, inv),
-	registerUsableItem: (name, handler) => core$23.RegisterUsableItem(name, handler),
-	registerShop: (name, label, items) => core$23.RegisterShop(name, label, items),
-	openShop: (source, name) => core$23.OpenShop(source, name),
-	getItemDefinition: (name) => core$23.GetItemDefinition(name)
-}, core$22 = resourceExport(CORE.resource);
+const core$22 = resourceExport(CORE.resource), inventory = {
+	addItem: (inv, item, count = 1, metadata, slot) => core$22.AddItem(inv, item, count, metadata, slot),
+	removeItem: (inv, item, count = 1, metadata, slot) => core$22.RemoveItem(inv, item, count, metadata, slot),
+	getItemCount: (inv, item, metadata) => core$22.GetItemCount(inv, item, metadata),
+	hasItem: (inv, item, count = 1) => core$22.HasItem(inv, item, count),
+	canCarryItem: (inv, item, count = 1, metadata) => core$22.CanCarryItem(inv, item, count, metadata),
+	getItems: (inv) => core$22.GetItems(inv),
+	clearInventory: (inv) => core$22.ClearInventory(inv),
+	registerStash: (name, label, slots, maxWeight, jobs = []) => core$22.RegisterStash(name, label, slots, maxWeight, jobs),
+	openInventory: (source, inv) => core$22.OpenInventory(source, inv),
+	registerUsableItem: (name, handler) => core$22.RegisterUsableItem(name, handler),
+	registerShop: (name, label, items) => core$22.RegisterShop(name, label, items),
+	openShop: (source, name) => core$22.OpenShop(source, name),
+	getItemDefinition: (name) => core$22.GetItemDefinition(name)
+}, core$21 = resourceExport(CORE.resource);
 function reindex(index, source, before, after) {
 	for (let name of before) {
 		let set = index.get(name);
@@ -918,11 +868,11 @@ var OnlinePlayers = class {
 				gangs: [],
 				gangNames: [],
 				duty: null
-			}), this.setJobs(source, core$22.GetJobs(source) ?? []), this.setGangs(source, core$22.GetGangs(source) ?? []), this.setDuty(source, core$22.GetDutyJob(source));
+			}), this.setJobs(source, core$21.GetJobs(source) ?? []), this.setGangs(source, core$21.GetGangs(source) ?? []), this.setDuty(source, core$21.GetDutyJob(source));
 		};
 		on(CORE.playerLoadedEvent, load), on(CORE.playerUnloadedEvent, (source) => this.drop(source)), on(CORE.jobsChangedEvent, (source, jobs) => this.setJobs(source, jobs)), on(CORE.gangsChangedEvent, (source, gangs) => this.setGangs(source, gangs)), on(CORE.dutyChangedEvent, (source, job) => this.setDuty(source, job));
-		for (let source of core$22.GetLoadedSources()) {
-			let character = core$22.GetCharacter(source);
+		for (let source of core$21.GetLoadedSources()) {
+			let character = core$21.GetCharacter(source);
 			character && load(source, character);
 		}
 	}
@@ -1028,7 +978,8 @@ function onDropped(fn) {
 		for (let handler of dropped) handler(source);
 	})), dropped.add(fn);
 }
-var PlayerMap = class extends Map {
+// ../../../node_modules/@aicore-fivem/lib/src/server/progressFor.ts
+const running = new class extends Map {
 	constructor(options = {}) {
 		super(), onDropped((source) => {
 			if (!this.has(source)) return;
@@ -1036,52 +987,13 @@ var PlayerMap = class extends Map {
 			this.delete(source), options.onDrop?.(source, value);
 		});
 	}
-}, KeyedCooldowns = class {
-	until = new Map();
-	sweepAt = 64;
-	ready(key) {
-		return this.left(key) === 0;
-	}
-	start(key, ms) {
-		ms <= 0 ? this.until.delete(key) : (this.until.size >= this.sweepAt && this.sweep(), this.until.set(key, GetGameTimer() + ms));
-	}
-	take(key, ms) {
-		return this.ready(key) ? (this.start(key, ms), !0) : !1;
-	}
-	left(key) {
-		let until = this.until.get(key);
-		if (until === void 0) return 0;
-		let left = until - GetGameTimer();
-		return left > 0 ? left : (this.until.delete(key), 0);
-	}
-	clear(key) {
-		this.until.delete(key);
-	}
-	sweep() {
-		let now = GetGameTimer();
-		for (let [key, until] of this.until) until <= now && this.until.delete(key);
-		this.sweepAt = Math.max(64, this.until.size * 2);
-	}
-};
-// ../../../node_modules/@aicore-fivem/lib/src/server/progressFor.ts
-const running = new PlayerMap({ onDrop: (_source, settle) => settle(!1) });
+}({ onDrop: (_source, settle) => settle(!1) });
 on(CORE.playerUnloadedEvent, (source) => {
 	let settle = running.get(source);
 	settle && settle(!1);
 });
-function progressFor(source, options) {
-	let previous = running.get(source);
-	previous && (previous(!1), emitNet(LIB_UI.progressForCancelEvent, source));
-	let { minRatio = .8, ...bar } = options, startedAt = GetGameTimer();
-	return new Promise((resolve) => {
-		let done = !1, settle = (ok) => {
-			done || (done = !0, running.get(source) === settle && running.delete(source), resolve(ok));
-		};
-		running.set(source, settle), triggerClientCallback(LIB_UI.progressForCallback, source, [bar], bar.duration + 15e3).then((answer) => settle(answer === !0 && GetGameTimer() - startedAt >= bar.duration * minRatio), () => settle(!1));
-	});
-}
 // ../../../node_modules/@aicore-fivem/lib/src/server/definitions.ts
-const core$18 = resourceExport("ai-core");
+const core$17 = resourceExport("ai-core");
 new class {
 	jobs = new Map();
 	gangs = new Map();
@@ -1092,11 +1004,11 @@ new class {
 	}
 	job(name) {
 		let def = this.jobs.get(name);
-		return def === void 0 && this.jobs.set(name, def = core$18.GetJobDefinition(name) ?? null), def;
+		return def === void 0 && this.jobs.set(name, def = core$17.GetJobDefinition(name) ?? null), def;
 	}
 	gang(name) {
 		let def = this.gangs.get(name);
-		return def === void 0 && this.gangs.set(name, def = core$18.GetGangDefinition(name) ?? null), def;
+		return def === void 0 && this.gangs.set(name, def = core$17.GetGangDefinition(name) ?? null), def;
 	}
 }();
 // ../../../node_modules/@aicore-fivem/lib/src/server/command.ts
@@ -1213,118 +1125,78 @@ new class {
 		}
 		groups.length = kept, this.nextDue = soonest;
 	};
-}(), IsDuplicityVersion(), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource);
-// resource/common/locale.ts
-const Locale = createLocale();
-GetCurrentResourceName(), IsDuplicityVersion();
-// resource/common/dumpsters.ts
-const EVENTS = { search: "dumpster:search" };
-function readLoot(value) {
-	if (!Array.isArray(value)) return [];
-	let out = [];
-	for (let item of value) {
-		if (typeof item != "object" || !item) continue;
-		let v = item, name = typeof v.name == "string" && v.name.length > 0 ? v.name : null;
-		name && out.push({
-			name,
-			min: typeof v.min == "number" && v.min >= 0 ? Math.floor(v.min) : 0,
-			max: typeof v.max == "number" && v.max >= 0 ? Math.floor(v.max) : 1
-		});
-	}
-	return out;
-}
+}(), IsDuplicityVersion(), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), resourceExport(CORE.resource), createLocale(), GetCurrentResourceName(), IsDuplicityVersion();
+// resource/common/vehicleDamage.ts
 function readSettings(value) {
-	let v = value ?? {};
+	let v = value ?? {}, n = (k, d) => typeof v[k] == "number" ? v[k] : d;
 	return {
-		searchSeconds: typeof v.searchSeconds == "number" && v.searchSeconds > 0 ? Math.floor(v.searchSeconds) : 8,
-		cooldownMinutes: typeof v.cooldownMinutes == "number" && v.cooldownMinutes >= 0 ? Math.floor(v.cooldownMinutes) : 10,
-		minCash: typeof v.minCash == "number" && v.minCash >= 0 ? Math.floor(v.minCash) : 10,
-		maxCash: typeof v.maxCash == "number" && v.maxCash >= 0 ? Math.floor(v.maxCash) : 75,
-		findChance: typeof v.findChance == "number" && v.findChance >= 0 && v.findChance <= 100 ? Math.floor(v.findChance) : 70,
-		useStash: v.mode === "stash" || v.useStash === !0,
-		stashSlots: typeof v.stashSlots == "number" && v.stashSlots > 0 ? Math.floor(v.stashSlots) : 20,
-		stashWeight: typeof v.stashWeight == "number" && v.stashWeight > 0 ? Math.floor(v.stashWeight) : 5e4,
-		loot: readLoot(v.loot)
+		globalSeverity: n("globalSeverity", 1.1),
+		minorDeltaV: n("minorDeltaV", 3.5),
+		moderateDeltaV: n("moderateDeltaV", 7),
+		severeDeltaV: n("severeDeltaV", 12),
+		powerLossMinor: n("powerLossMinor", .12),
+		powerLossModerate: n("powerLossModerate", .3),
+		powerLossSevere: n("powerLossSevere", .6),
+		engineHitMinor: n("engineHitMinor", 60),
+		engineHitModerate: n("engineHitModerate", 200),
+		engineHitSevere: n("engineHitSevere", 450),
+		bodyHitMinor: n("bodyHitMinor", 80),
+		bodyHitModerate: n("bodyHitModerate", 220),
+		bodyHitSevere: n("bodyHitSevere", 450),
+		smokeAtEngineHP: n("smokeAtEngineHP", 450),
+		fireAtEngineHP: n("fireAtEngineHP", 220),
+		screenShakeMinor: n("screenShakeMinor", .25),
+		screenShakeModerate: n("screenShakeModerate", .55),
+		screenShakeSevere: n("screenShakeSevere", .95),
+		tireItem: typeof v.tireItem == "string" && v.tireItem.length > 0 ? v.tireItem : "tire",
+		tireRepairAll: v.tireRepairAll === !0
 	};
 }
 // resource/server/schema.ts
-const dumpsterSchema = {
+const vehicleDamageSchema = {
 	title: "ADMIN_TITLE",
-	icon: "dumpster",
+	icon: "car-burst",
 	files: { settings: {
 		kind: "settings",
-		sync: "admin",
+		sync: "all",
 		sections: {
-			searchSeconds: {
-				type: "number",
-				min: 1,
-				max: 600,
-				integer: !0
-			},
-			cooldownMinutes: {
+			globalSeverity: {
 				type: "number",
 				min: 0,
-				max: 1440,
-				integer: !0
+				max: 2,
+				optional: !0
 			},
-			minCash: {
+			minorDeltaV: {
 				type: "number",
 				min: 0,
-				max: 1e5,
-				integer: !0
+				max: 100
 			},
-			maxCash: {
+			moderateDeltaV: {
 				type: "number",
 				min: 0,
-				max: 1e5,
-				integer: !0
+				max: 100
 			},
-			findChance: {
+			severeDeltaV: {
 				type: "number",
 				min: 0,
-				max: 100,
-				integer: !0
+				max: 100
 			},
-			useStash: { type: "bool" },
-			stashSlots: {
+			smokeAtEngineHP: {
 				type: "number",
-				min: 1,
-				max: 200,
-				integer: !0
+				min: 0,
+				max: 1e3
 			},
-			stashWeight: {
+			fireAtEngineHP: {
 				type: "number",
-				min: 1e3,
-				max: 1e7,
-				integer: !0
+				min: 0,
+				max: 1e3
 			},
-			loot: {
-				type: "list",
-				max: 50,
-				of: {
-					type: "object",
-					fields: {
-						name: {
-							type: "text",
-							lookup: "item",
-							min: 2,
-							max: 48
-						},
-						min: {
-							type: "number",
-							min: 0,
-							max: 100,
-							integer: !0
-						},
-						max: {
-							type: "number",
-							min: 0,
-							max: 100,
-							integer: !0
-						}
-					}
-				}
-			}
+			tireItem: {
+				type: "text",
+				min: 2,
+				max: 32
+			},
+			tireRepairAll: { type: "bool" }
 		}
 	} },
 	tabs: [{
@@ -1340,169 +1212,69 @@ const dumpsterSchema = {
 			fields: [
 				{
 					widget: "number",
-					path: "searchSeconds",
-					label: "ADMIN_F_SEARCH_SECONDS",
-					min: 1,
-					max: 600,
-					unit: "s"
-				},
-				{
-					widget: "number",
-					path: "cooldownMinutes",
-					label: "ADMIN_F_COOLDOWN",
-					hint: "ADMIN_H_COOLDOWN",
+					path: "globalSeverity",
+					label: "ADMIN_F_SEVERITY",
 					min: 0,
-					max: 1440,
-					unit: "min"
+					max: 2,
+					unit: "x"
 				},
 				{
 					widget: "number",
-					path: "minCash",
-					label: "ADMIN_F_MIN_CASH",
-					min: 0,
-					max: 1e5,
-					unit: "$"
-				},
-				{
-					widget: "number",
-					path: "maxCash",
-					label: "ADMIN_F_MAX_CASH",
-					min: 0,
-					max: 1e5,
-					unit: "$"
-				},
-				{
-					widget: "number",
-					path: "findChance",
-					label: "ADMIN_F_FIND_CHANCE",
-					hint: "ADMIN_H_FIND_CHANCE",
+					path: "minorDeltaV",
+					label: "ADMIN_F_MINOR",
 					min: 0,
 					max: 100,
-					unit: "%"
+					unit: "m/s"
+				},
+				{
+					widget: "number",
+					path: "moderateDeltaV",
+					label: "ADMIN_F_MODERATE",
+					min: 0,
+					max: 100,
+					unit: "m/s"
+				},
+				{
+					widget: "number",
+					path: "severeDeltaV",
+					label: "ADMIN_F_SEVERE",
+					min: 0,
+					max: 100,
+					unit: "m/s"
+				},
+				{
+					widget: "number",
+					path: "smokeAtEngineHP",
+					label: "ADMIN_F_SMOKE",
+					min: 0,
+					max: 1e3
+				},
+				{
+					widget: "number",
+					path: "fireAtEngineHP",
+					label: "ADMIN_F_FIRE",
+					min: 0,
+					max: 1e3
+				},
+				{
+					widget: "text",
+					path: "tireItem",
+					label: "ADMIN_F_TIRE_ITEM"
 				},
 				{
 					widget: "switch",
-					path: "useStash",
-					label: "ADMIN_F_USE_STASH",
-					hint: "ADMIN_H_USE_STASH"
-				},
-				{
-					widget: "number",
-					path: "stashSlots",
-					label: "ADMIN_F_STASH_SLOTS",
-					min: 1,
-					max: 200
-				},
-				{
-					widget: "number",
-					path: "stashWeight",
-					label: "ADMIN_F_STASH_WEIGHT",
-					min: 1e3,
-					max: 1e7,
-					unit: "g"
-				},
-				{
-					widget: "list",
-					path: "loot",
-					label: "ADMIN_F_LOOT",
-					addLabel: "ADMIN_ADD_LOOT",
-					max: 50,
-					newRow: {
-						name: "water",
-						min: 0,
-						max: 2
-					},
-					rows: [
-						{
-							widget: "text",
-							lookup: "item",
-							path: "name",
-							label: "ADMIN_F_ITEM",
-							placeholder: "ADMIN_P_ITEM"
-						},
-						{
-							widget: "number",
-							path: "min",
-							label: "ADMIN_F_MIN",
-							min: 0,
-							max: 100
-						},
-						{
-							widget: "number",
-							path: "max",
-							label: "ADMIN_F_MAX",
-							min: 0,
-							max: 100
-						}
-					]
+					path: "tireRepairAll",
+					label: "ADMIN_F_TIRE_REPAIR_ALL"
 				}
 			]
 		}]
 	}]
-}, core = resourceExport("ai-core"), settings = new AdminPanel(dumpsterSchema).view("settings", readSettings);
-new KeyedCooldowns();
-const dumpsterCooldown = new Map();
-function keyOf(x, y, z) {
-	return `${Math.round(x * 10)}_${Math.round(y * 10)}_${Math.round(z * 10)}`;
-}
-onClientCallback(EVENTS.search, {
-	args: ([x, y, z]) => {
-		let a = readFinite(x), b = readFinite(y), c = readFinite(z);
-		return a === null || b === null || c === null ? null : [
-			a,
-			b,
-			c
-		];
-	},
-	lock: !0
-}, (source, x, y, z) => {
-	let point = {
-		x,
-		y,
-		z
-	};
-	if (!isNear(source, point, 4)) return fail("DUMPSTER_ERR_FAR");
-	let now = GetGameTimer(), key = keyOf(x, y, z), last = dumpsterCooldown.get(key), cdMs = settings.value.cooldownMinutes * 6e4;
-	return last !== void 0 && cdMs > 0 && now - last < cdMs ? fail("DUMPSTER_COOLDOWN") : (search(source, point, key), { ok: !0 });
+}, log = createLogger("mb-vehicledamage");
+resourceExport("ai-core");
+const panel = new AdminPanel(vehicleDamageSchema), settings = panel.view("settings", readSettings);
+panel.onChange("settings", () => {
+	let item = settings.value.tireItem;
+	inventory.registerUsableItem(item, (source) => (emitNet("mb-vehicledamage:repairTires", source), !0));
 });
-async function search(source, point, key) {
-	if (!await progressFor(source, {
-		label: Locale("DUMPSTER_SEARCHING"),
-		duration: settings.value.searchSeconds * 1e3,
-		anim: {
-			dict: "mini@repair",
-			clip: "fixing_a_player"
-		},
-		face: point,
-		canCancel: !0,
-		freeze: !0,
-		disable: {
-			move: !0,
-			combat: !0
-		}
-	}) || !isNear(source, point, 4)) return;
-	if (dumpsterCooldown.set(key, GetGameTimer()), randomInt(0, 99) >= settings.value.findChance) {
-		notify(source, Locale("DUMPSTER_EMPTY"), "info");
-		return;
-	}
-	let amount = randomInt(settings.value.minCash, Math.max(settings.value.minCash, settings.value.maxCash));
-	amount > 0 && core.AddMoney(source, "cash", amount, "dumpster");
-	let stashName = `dumpster_${key}`;
-	if (settings.value.useStash) {
-		inventory.registerStash(stashName, "Dumpster", settings.value.stashSlots, settings.value.stashWeight);
-		for (let entry of settings.value.loot) {
-			let count = randomInt(entry.min, Math.max(entry.min, entry.max));
-			count > 0 && inventory.addItem(stashName, entry.name, count);
-		}
-		await sleep(100), inventory.openInventory(source, stashName) || notify(source, "Could not open the dumpster", "error");
-	} else {
-		let found = [];
-		for (let entry of settings.value.loot) {
-			let count = randomInt(entry.min, Math.max(entry.min, entry.max));
-			count > 0 && (inventory.addItem(source, entry.name, count), found.push(`${entry.name} x${count}`));
-		}
-		let parts = [];
-		amount > 0 && parts.push(`$${amount}`), found.length > 0 && parts.push(found.join(", ")), notify(source, parts.length > 0 ? `Found ${parts.join(" and ")}` : Locale("DUMPSTER_EMPTY"), parts.length > 0 ? "success" : "info");
-	}
-	amount > 0 && settings.value.useStash && notify(source, `Found $${amount}`, "success");
-}
+const initItem = settings.value.tireItem;
+inventory.registerUsableItem(initItem, (source) => (emitNet("mb-vehicledamage:repairTires", source), !0)), log.info("mb-vehicledamage ready");

@@ -17,6 +17,8 @@ export interface VehicleDamageSettings {
   screenShakeMinor: number;
   screenShakeModerate: number;
   screenShakeSevere: number;
+  tireItem: string;
+  tireRepairAll: boolean;
 }
 
 export function readSettings(value: unknown): VehicleDamageSettings {
@@ -41,5 +43,7 @@ export function readSettings(value: unknown): VehicleDamageSettings {
     screenShakeMinor: n("screenShakeMinor", 0.25),
     screenShakeModerate: n("screenShakeModerate", 0.55),
     screenShakeSevere: n("screenShakeSevere", 0.95),
+    tireItem: typeof v.tireItem === "string" && v.tireItem.length > 0 ? v.tireItem : "tire",
+    tireRepairAll: v.tireRepairAll === true,
   };
 }

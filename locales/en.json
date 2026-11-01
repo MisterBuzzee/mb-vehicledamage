@@ -1,1 +1,15 @@
-{ }
+{
+  "ADMIN_TITLE": "Vehicle Damage",
+  "ADMIN_TAB_SETTINGS": "Settings",
+  "ADMIN_TAB_SETTINGS_DESC": "Damage simulation rules.",
+  "ADMIN_C_SETTINGS": "Settings",
+  "ADMIN_C_SETTINGS_DESC": "Used by every vehicle.",
+  "ADMIN_F_SEVERITY": "Global severity",
+  "ADMIN_F_MINOR": "Minor delta-V",
+  "ADMIN_F_MODERATE": "Moderate delta-V",
+  "ADMIN_F_SEVERE": "Severe delta-V",
+  "ADMIN_F_SMOKE": "Smoke at HP",
+  "ADMIN_F_FIRE": "Fire at HP",
+  "ADMIN_F_TIRE_ITEM": "Tire item name",
+  "ADMIN_F_TIRE_REPAIR_ALL": "Repair all tires"
+}

@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "mb-vehicledamage/data/settings.json",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "This file's JSON Schema (for editors)."
+    },
+    "searchSeconds": {
+      "description": "ADMIN_F_SEARCH_SECONDS",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 600
+    },
+    "cooldownMinutes": {
+      "description": "ADMIN_F_COOLDOWN: ADMIN_H_COOLDOWN",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1440
+    },
+    "minCash": {
+      "description": "ADMIN_F_MIN_CASH",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100000
+    },
+    "maxCash": {
+      "description": "ADMIN_F_MAX_CASH",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100000
+    },
+    "findChance": {
+      "description": "ADMIN_F_FIND_CHANCE: ADMIN_H_FIND_CHANCE",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "useStash": {
+      "description": "ADMIN_F_USE_STASH: ADMIN_H_USE_STASH",
+      "type": "boolean"
+    },
+    "stashSlots": {
+      "description": "ADMIN_F_STASH_SLOTS",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 200
+    },
+    "stashWeight": {
+      "description": "ADMIN_F_STASH_WEIGHT",
+      "type": "integer",
+      "minimum": 1000,
+      "maximum": 10000000
+    },
+    "loot": {
+      "description": "ADMIN_F_LOOT",
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "ADMIN_F_ITEM",
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 48
+          },
+          "min": {
+            "description": "ADMIN_F_MIN",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "max": {
+            "description": "ADMIN_F_MAX",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "name",
+          "min",
+          "max"
+        ]
+      }
+    }
+  },
+  "required": [
+    "searchSeconds",
+    "cooldownMinutes",
+    "minCash",
+    "maxCash",
+    "findChance",
+    "useStash",
+    "stashSlots",
+    "stashWeight",
+    "loot"
+  ]
+}

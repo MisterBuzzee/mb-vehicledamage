@@ -135,3 +135,22 @@ function mainTick() {
 
 // Tick at ~10ms
 setInterval(mainTick, 10);
+
+// Tire repair via usable item.
+onNet("mb-vehicledamage:repairTires", () => {
+  const ped = PlayerPedId();
+  let veh = 0;
+  if (IsPedInAnyVehicle(ped, false)) {
+    const v = GetVehiclePedIsIn(ped, false);
+    if (GetPedInVehicleSeat(v, -1) === ped) veh = v;
+  }
+  if (veh === 0) {
+    // try nearest vehicle
+    const pc = GetEntityCoords(ped, true) as [number, number, number];
+    veh = GetClosestVehicle(pc[0], pc[1], pc[2], 3.0, 0, 70) as number;
+  }
+  if (veh === 0) return;
+  const count = GetVehicleNumberOfWheels(veh);
+  for (let i = 0; i < count; i++) SetVehicleTyreFixed(veh, i);
+  SetVehicleTyreFixed(veh, 0);
+});

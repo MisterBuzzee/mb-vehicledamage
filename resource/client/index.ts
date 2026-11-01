@@ -160,7 +160,7 @@ onNet("mb-vehicledamage:repairTires", async () => {
     tries += 1;
   }
   if (HasAnimDictLoaded(dict)) {
-    TaskPlayAnim(ped, dict, clip, 8.0, -8.0, 25000, 1, 0, false, false, false);
+    TaskPlayAnim(ped, dict, clip, 8.0, -8.0, -1, 0, 0, false, false, false);
   }
 
   // Progress bar for 25 seconds (cancellable).

@@ -1,8 +1,9 @@
 {
+  "$schema": "./schemas/settings.schema.json",
   "globalSeverity": 1.1,
   "minorDeltaV": 3.5,
-  "moderateDeltaV": 7.0,
-  "severeDeltaV": 12.0,
+  "moderateDeltaV": 7,
+  "severeDeltaV": 12,
   "smokeAtEngineHP": 450,
   "fireAtEngineHP": 220,
   "tireItem": "tire",

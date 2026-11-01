@@ -1,4 +1,5 @@
 import { AdminWorld } from "@aicore-fivem/lib/client";
+import { sleep } from "@aicore-fivem/lib/shared";
 import { Locale } from "common";
 import { readSettings, type VehicleDamageSettings } from "common/vehicleDamage";
 
@@ -137,7 +138,7 @@ function mainTick() {
 setInterval(mainTick, 10);
 
 // Tire repair via usable item.
-onNet("mb-vehicledamage:repairTires", () => {
+onNet("mb-vehicledamage:repairTires", async () => {
   const ped = PlayerPedId();
   let veh = 0;
   if (IsPedInAnyVehicle(ped, false)) {
@@ -145,12 +146,26 @@ onNet("mb-vehicledamage:repairTires", () => {
     if (GetPedInVehicleSeat(v, -1) === ped) veh = v;
   }
   if (veh === 0) {
-    // try nearest vehicle
     const pc = GetEntityCoords(ped, true) as [number, number, number];
     veh = GetClosestVehicle(pc[0], pc[1], pc[2], 3.0, 0, 70) as number;
   }
   if (veh === 0) return;
+
+  // Play a repair animation.
+  const dict = "mini@repair";
+  const clip = "fixing_a_player";
+  RequestAnimDict(dict);
+  let tries = 0;
+  while (!HasAnimDictLoaded(dict) && tries < 100) {
+    await sleep(10);
+    tries += 1;
+  }
+  if (HasAnimDictLoaded(dict)) {
+    TaskPlayAnim(ped, dict, clip, 8.0, -8.0, 5000, 1, 0, false, false, false);
+  }
+  await sleep(5000);
+  ClearPedTasks(ped);
+
   const count = GetVehicleNumberOfWheels(veh);
   for (let i = 0; i < count; i++) SetVehicleTyreFixed(veh, i);
-  SetVehicleTyreFixed(veh, 0);
 });

@@ -151,8 +151,8 @@ onNet("mb-vehicledamage:repairTires", async () => {
   }
   if (veh === 0) return;
 
-  const dict = "mini@repair";
-  const clip = "fixing_a_player";
+  const dict = "veh@bicycle@fixster@front@base";
+  const clip = "fixieskid_to_balance_right_char";
   RequestAnimDict(dict);
   let tries = 0;
   while (!HasAnimDictLoaded(dict) && tries < 100) {

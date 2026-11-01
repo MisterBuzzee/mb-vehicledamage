@@ -151,11 +151,23 @@ onNet("mb-vehicledamage:repairTires", async () => {
   }
   if (veh === 0) return;
 
-  // Progress bar for 25 seconds (cancellable), crouching mechanic scenario.
+  // Crouching animation while repairing.
+  const dict = "amb@world_human_vehicle_mechanic@male@base";
+  const clip = "base";
+  RequestAnimDict(dict);
+  let tries = 0;
+  while (!HasAnimDictLoaded(dict) && tries < 100) {
+    await sleep(10);
+    tries += 1;
+  }
+  if (HasAnimDictLoaded(dict)) {
+    TaskPlayAnim(ped, dict, clip, 8.0, -8.0, 25000, 1, 0, false, false, false);
+  }
+
+  // Progress bar for 25 seconds (cancellable).
   const done = await progress({
     label: "Repairing tire",
     duration: 25000,
-    scenario: "WORLD_HUMAN_VEHICLE_MECHANIC",
     canCancel: true,
     freeze: true,
     disable: { move: true, combat: true },

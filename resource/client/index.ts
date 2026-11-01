@@ -1,4 +1,4 @@
-import { AdminWorld } from "@aicore-fivem/lib/client";
+import { AdminWorld, progress } from "@aicore-fivem/lib/client";
 import { sleep } from "@aicore-fivem/lib/shared";
 import { Locale } from "common";
 import { readSettings, type VehicleDamageSettings } from "common/vehicleDamage";
@@ -151,7 +151,7 @@ onNet("mb-vehicledamage:repairTires", async () => {
   }
   if (veh === 0) return;
 
-  // Crouch first, then play the repair animation.
+  // Crouch first.
   RequestAnimSet("move_crouch_proto");
   let crouchTries = 0;
   while (!HasAnimSetLoaded("move_crouch_proto") && crouchTries < 100) {
@@ -162,20 +162,19 @@ onNet("mb-vehicledamage:repairTires", async () => {
     SetPedMovementClipset(ped, "move_crouch_proto", 0.5);
   }
 
-  const dict = "mini@repair";
-  const clip = "fixing_a_player";
-  RequestAnimDict(dict);
-  let tries = 0;
-  while (!HasAnimDictLoaded(dict) && tries < 100) {
-    await sleep(10);
-    tries += 1;
-  }
-  if (HasAnimDictLoaded(dict)) {
-    TaskPlayAnim(ped, dict, clip, 8.0, -8.0, 5000, 1, 0, false, false, false);
-  }
-  await sleep(5000);
-  ClearPedTasks(ped);
+  // Progress bar for 25 seconds (cancellable), with repair animation.
+  const done = await progress({
+    label: "Repairing tire",
+    duration: 25000,
+    anim: { dict: "mini@repair", clip: "fixing_a_player", flag: 1 },
+    canCancel: true,
+    freeze: true,
+    disable: { move: true, combat: true },
+  });
+
   ResetPedMovementClipset(ped, 0.5);
+
+  if (!done) return;
 
   const count = GetVehicleNumberOfWheels(veh);
   for (let i = 0; i < count; i++) SetVehicleTyreFixed(veh, i);

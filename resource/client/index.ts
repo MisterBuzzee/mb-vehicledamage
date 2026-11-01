@@ -151,28 +151,17 @@ onNet("mb-vehicledamage:repairTires", async () => {
   }
   if (veh === 0) return;
 
-  // Crouch first.
-  RequestAnimSet("move_crouch_proto");
-  let crouchTries = 0;
-  while (!HasAnimSetLoaded("move_crouch_proto") && crouchTries < 100) {
-    await sleep(10);
-    crouchTries += 1;
-  }
-  if (HasAnimSetLoaded("move_crouch_proto")) {
-    SetPedMovementClipset(ped, "move_crouch_proto", 0.5);
-  }
-
-  // Progress bar for 25 seconds (cancellable), with repair animation.
+  // Progress bar for 25 seconds (cancellable), crouching mechanic scenario.
   const done = await progress({
     label: "Repairing tire",
     duration: 25000,
-    anim: { dict: "mini@repair", clip: "fixing_a_player", flag: 1 },
+    scenario: "WORLD_HUMAN_VEHICLE_MECHANIC",
     canCancel: true,
     freeze: true,
     disable: { move: true, combat: true },
   });
 
-  ResetPedMovementClipset(ped, 0.5);
+  ClearPedTasks(ped);
 
   if (!done) return;
 

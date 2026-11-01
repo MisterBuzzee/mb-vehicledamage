@@ -151,16 +151,29 @@ onNet("mb-vehicledamage:repairTires", async () => {
   }
   if (veh === 0) return;
 
-  const dict = "amb@world_human_bum_wash@male@low@idle_a";
-  const clip = "idle_a";
-  RequestAnimDict(dict);
+  // Base crouch animation.
+  const baseDict = "amb@world_human_bum_wash@male@low@idle_a";
+  const baseClip = "idle_a";
+  RequestAnimDict(baseDict);
   let tries = 0;
-  while (!HasAnimDictLoaded(dict) && tries < 100) {
+  while (!HasAnimDictLoaded(baseDict) && tries < 100) {
     await sleep(10);
     tries += 1;
   }
-  if (HasAnimDictLoaded(dict)) {
-    TaskPlayAnim(ped, dict, clip, 8.0, -8.0, 25000, 1, 0, false, false, false);
+  if (HasAnimDictLoaded(baseDict)) {
+    TaskPlayAnim(ped, baseDict, baseClip, 8.0, -8.0, 25000, 1, 0, false, false, false);
+  }
+  // Hand/repair movement layered on top (upper body only).
+  const handDict = "mini@repair";
+  const handClip = "fixing_a_player";
+  RequestAnimDict(handDict);
+  let htries = 0;
+  while (!HasAnimDictLoaded(handDict) && htries < 100) {
+    await sleep(10);
+    htries += 1;
+  }
+  if (HasAnimDictLoaded(handDict)) {
+    TaskPlayAnim(ped, handDict, handClip, 8.0, -8.0, 25000, 49, 0, false, false, false);
   }
 
   // Progress bar for 25 seconds (cancellable).

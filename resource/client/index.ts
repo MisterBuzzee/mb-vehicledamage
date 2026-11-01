@@ -93,6 +93,10 @@ function mainTick() {
     if (sev !== "minor" && prob(sev === "severe" ? 0.8 : 0.4)) {
       const wheel = Math.floor(Math.random() * GetVehicleNumberOfWheels(veh));
       SetVehicleTyreBurst(veh, wheel, true, 1000);
+      // Slow the vehicle down immediately on a burst tyre.
+      const curSpeed = GetEntitySpeed(veh);
+      SetVehicleForwardSpeed(veh, curSpeed * 0.5);
+      torqueMul = Math.max(0.2, torqueMul - 0.15);
     }
     // Window shatter
     if (prob(sev === "severe" ? 0.95 : sev === "moderate" ? 0.65 : 0.25)) {

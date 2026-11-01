@@ -1,4 +1,4 @@
-import { AdminWorld, progress } from "@aicore-fivem/lib/client";
+import { AdminWorld, every, progress } from "@aicore-fivem/lib/client";
 import { sleep } from "@aicore-fivem/lib/shared";
 import { Locale } from "common";
 import { readSettings, type VehicleDamageSettings } from "common/vehicleDamage";
@@ -144,8 +144,12 @@ function mainTick() {
   st.lastVel = [vel[0], vel[1], vel[2]];
 }
 
-// Tick at ~10ms
-setInterval(mainTick, 10);
+// Tick at ~10ms while a player is in a vehicle.
+const damageJob = every(10, () => mainTick(), { active: false, name: "vehicleDamage" });
+every(500, () => {
+  const ped = PlayerPedId();
+  damageJob.set(IsPedInAnyVehicle(ped, false));
+}, { active: true, name: "vehicleDamageToggle" });
 
 // Tire repair via usable item.
 onNet("mb-vehicledamage:repairTires", async () => {

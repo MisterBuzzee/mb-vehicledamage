@@ -5,7 +5,7 @@
   "moderateDeltaV": 7,
   "severeDeltaV": 12,
   "smokeAtEngineHP": 450,
-  "fireAtEngineHP": 220,
+  "fireAtEngineHP": 50,
   "tireItem": "tire",
   "tireRepairAll": true
 }

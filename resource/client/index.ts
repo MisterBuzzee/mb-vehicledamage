@@ -95,8 +95,14 @@ function mainTick() {
       SetVehicleTyreBurst(veh, wheel, true, 1000);
       // Slow the vehicle down immediately on a burst tyre.
       const curSpeed = GetEntitySpeed(veh);
-      SetVehicleForwardSpeed(veh, curSpeed * 0.5);
-      torqueMul = Math.max(0.2, torqueMul - 0.15);
+      SetVehicleForwardSpeed(veh, curSpeed * 0.3);
+      SetVehicleMaxSpeed(veh, 5.0);
+      torqueMul = Math.max(0.15, torqueMul - 0.3);
+      // Restore max speed after a few seconds.
+      (async () => {
+        await sleep(3000);
+        SetVehicleMaxSpeed(veh, 0); // 0 = reset to default
+      })();
     }
     // Window shatter
     if (prob(sev === "severe" ? 0.95 : sev === "moderate" ? 0.65 : 0.25)) {

@@ -1,0 +1,33 @@
+{
+  "name": "mb-vehicledamage",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Ultra realistic vehicle damage simulation (client-side)",
+  "license": "GPL-3.0-only",
+  "author": { "name": "MisterBuzzee" },
+  "repository": "github:MisterBuzzee/mb-vehicledamage",
+  "type": "module",
+  "fxDependencies": ["ai-core"],
+  "scripts": {
+    "lint": "oxlint --ignore-pattern \"dist/**\"",
+    "format": "prettier --write .",
+    "dev": "bun tsdown -- --watch",
+    "build": "bun tsdown -- && aicore-client-errors dist/client.js",
+    "typecheck": "tsc --noEmit -p resource/client/tsconfig.json"
+  },
+  "dependencies": {
+    "@aicore-fivem/lib": "^0.2.0",
+    "@aicore-fivem/shared": "^0.2.0"
+  },
+  "devDependencies": {
+    "@aicore-fivem/build": "^0.1.0",
+    "@citizenfx/client": "latest",
+    "@types/bun": "latest",
+    "@types/node": "^22",
+    "fast-glob": "^3.3.3",
+    "prettier": "^3.9.10",
+    "oxlint": "^1.66.0",
+    "tsdown": "^0.22.0",
+    "typescript": "^6.0.3"
+  }
+}

@@ -1,0 +1,141 @@
+import type { PanelSchema } from "@aicore-fivem/shared";
+
+export const dumpsterSchema: PanelSchema = {
+  title: "ADMIN_TITLE",
+  icon: "dumpster",
+  files: {
+    settings: {
+      kind: "settings",
+      sync: "admin",
+      sections: {
+        searchSeconds: { type: "number", min: 1, max: 600, integer: true },
+        cooldownMinutes: { type: "number", min: 0, max: 1440, integer: true },
+        minCash: { type: "number", min: 0, max: 100000, integer: true },
+        maxCash: { type: "number", min: 0, max: 100000, integer: true },
+        findChance: { type: "number", min: 0, max: 100, integer: true },
+        useStash: { type: "bool" },
+        stashSlots: { type: "number", min: 1, max: 200, integer: true },
+        stashWeight: { type: "number", min: 1000, max: 10000000, integer: true },
+        loot: {
+          type: "list",
+          max: 50,
+          of: {
+            type: "object",
+            fields: {
+              name: { type: "text", lookup: "item", min: 2, max: 48 },
+              min: { type: "number", min: 0, max: 100, integer: true },
+              max: { type: "number", min: 0, max: 100, integer: true },
+            },
+          },
+        },
+      },
+    },
+  },
+  tabs: [
+    {
+      id: "settings",
+      file: "settings",
+      icon: "sliders",
+      label: "ADMIN_TAB_SETTINGS",
+      desc: "ADMIN_TAB_SETTINGS_DESC",
+      cards: [
+        {
+          icon: "sliders",
+          title: "ADMIN_C_SETTINGS",
+          desc: "ADMIN_C_SETTINGS_DESC",
+          fields: [
+            {
+              widget: "number",
+              path: "searchSeconds",
+              label: "ADMIN_F_SEARCH_SECONDS",
+              min: 1,
+              max: 600,
+              unit: "s",
+            },
+            {
+              widget: "number",
+              path: "cooldownMinutes",
+              label: "ADMIN_F_COOLDOWN",
+              hint: "ADMIN_H_COOLDOWN",
+              min: 0,
+              max: 1440,
+              unit: "min",
+            },
+            {
+              widget: "number",
+              path: "minCash",
+              label: "ADMIN_F_MIN_CASH",
+              min: 0,
+              max: 100000,
+              unit: "$",
+            },
+            {
+              widget: "number",
+              path: "maxCash",
+              label: "ADMIN_F_MAX_CASH",
+              min: 0,
+              max: 100000,
+              unit: "$",
+            },
+            {
+              widget: "number",
+              path: "findChance",
+              label: "ADMIN_F_FIND_CHANCE",
+              hint: "ADMIN_H_FIND_CHANCE",
+              min: 0,
+              max: 100,
+              unit: "%",
+            },
+            { widget: "switch", path: "useStash", label: "ADMIN_F_USE_STASH", hint: "ADMIN_H_USE_STASH" },
+            {
+              widget: "number",
+              path: "stashSlots",
+              label: "ADMIN_F_STASH_SLOTS",
+              min: 1,
+              max: 200,
+            },
+            {
+              widget: "number",
+              path: "stashWeight",
+              label: "ADMIN_F_STASH_WEIGHT",
+              min: 1000,
+              max: 10000000,
+              unit: "g",
+            },
+            {
+              widget: "list",
+              path: "loot",
+              label: "ADMIN_F_LOOT",
+              addLabel: "ADMIN_ADD_LOOT",
+              max: 50,
+              newRow: { name: "water", min: 0, max: 2 },
+              rows: [
+                {
+                  widget: "text",
+                  lookup: "item",
+                  path: "name",
+                  label: "ADMIN_F_ITEM",
+                  placeholder: "ADMIN_P_ITEM",
+                },
+                {
+                  widget: "number",
+                  path: "min",
+                  label: "ADMIN_F_MIN",
+                  min: 0,
+                  max: 100,
+                },
+                {
+                  widget: "number",
+                  path: "max",
+                  label: "ADMIN_F_MAX",
+                  min: 0,
+                  max: 100,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+};

@@ -151,9 +151,8 @@ onNet("mb-vehicledamage:repairTires", async () => {
   }
   if (veh === 0) return;
 
-  // Crouching animation while repairing.
-  const dict = "amb@world_human_vehicle_mechanic@male@base";
-  const clip = "base";
+  const dict = "mini@repair";
+  const clip = "fixing_a_player";
   RequestAnimDict(dict);
   let tries = 0;
   while (!HasAnimDictLoaded(dict) && tries < 100) {

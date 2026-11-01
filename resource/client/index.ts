@@ -145,8 +145,8 @@ function mainTick() {
 }
 
 // Tick at ~10ms while a player is in a vehicle.
-const damageJob = every(10, () => mainTick(), { active: false, name: "vehicleDamage" });
-every(500, () => {
+const damageJob = every(50, () => mainTick(), { active: false, name: "vehicleDamage" });
+every(1000, () => {
   const ped = PlayerPedId();
   damageJob.set(IsPedInAnyVehicle(ped, false));
 }, { active: true, name: "vehicleDamageToggle" });

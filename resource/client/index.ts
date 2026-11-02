@@ -119,7 +119,8 @@ function applyImpact(veh: number, sev: "minor" | "moderate" | "severe"): void {
         const [vx = 0, vy = 0, vz = 0] = GetEntityVelocity(veh) as [number, number, number];
         if (!IsPedInAnyVehicle(ped, false)) {
           SetEntityVelocity(ped, vx * 0.8, vy * 0.8, vz * 0.8 + 6);
-          SetPedToRagdoll(ped, 2000, 2000, 0, true, true, false);
+          SetPedToRagdoll(ped, 5000, 5000, 0, true, true, false);
+          SetEntityHealth(ped, 0);
         }
       })();
     }

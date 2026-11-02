@@ -106,18 +106,20 @@ function applyImpact(veh: number, sev: "minor" | "moderate" | "severe"): void {
 
   accidentShake(sev);
 
-  // Eject the driver on hard impacts.
+  // Eject the driver on hard impacts (thrown through the windshield).
   if (sev !== "minor" && prob(sev === "severe" ? 0.7 : 0.25)) {
     const ped = PlayerPedId();
     const curSpeed = GetEntitySpeed(veh);
     if (curSpeed > 4) {
       (async () => {
-        await sleep(50);
-        TaskLeaveVehicle(ped, veh, 256);
-        const [vx = 0, vy = 0, vz = 0] = GetEntityVelocity(veh) as [number, number, number];
+        ClearPedTasksImmediately(ped);
+        SetPedCanBeKnockedOffVehicle(ped, 1);
+        TaskLeaveVehicle(ped, veh, 4160);
         await sleep(100);
+        const [vx = 0, vy = 0, vz = 0] = GetEntityVelocity(veh) as [number, number, number];
         if (!IsPedInAnyVehicle(ped, false)) {
-          SetEntityVelocity(ped, vx * 0.6, vy * 0.6, vz * 0.6 + 3);
+          SetEntityVelocity(ped, vx * 0.8, vy * 0.8, vz * 0.8 + 6);
+          SetPedToRagdoll(ped, 2000, 2000, 0, true, true, false);
         }
       })();
     }

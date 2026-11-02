@@ -107,33 +107,39 @@ function applyImpact(veh: number, sev: "minor" | "moderate" | "severe"): void {
   accidentShake(sev);
 
   // Eject the driver on hard impacts (thrown through the windshield).
-  if (sev !== "minor" && prob(sev === "severe" ? 0.7 : 0.25)) {
+  if (sev !== "minor" && prob(sev === "severe" ? 0.85 : 0.35)) {
     const ped = PlayerPedId();
     const curSpeed = GetEntitySpeed(veh);
-    if (curSpeed > 4) {
+    if (curSpeed > 2) {
       (async () => {
+        // Detach the ped from the vehicle and force them out.
         ClearPedTasksImmediately(ped);
         SetPedCanBeKnockedOffVehicle(ped, 1);
-        TaskLeaveVehicle(ped, veh, 4160);
-        // Wait for the ped to detach from the vehicle.
-        await sleep(250);
+        if (IsPedInAnyVehicle(ped, false)) {
+          TaskLeaveVehicle(ped, veh, 4160);
+          await sleep(100);
+        }
         // Force detach if still attached.
         if (IsPedInAnyVehicle(ped, false)) {
-          const [vx = 0, vy = 0, vz = 0] = GetEntityCoords(ped, true) as [number, number, number];
           DetachEntity(ped, true, true);
           await sleep(50);
         }
+        // Position the ped just outside the vehicle (in front, slightly up).
+        const [vx = 0, vy = 0, vz = 0] = GetEntityCoords(veh, true) as [number, number, number];
+        const fwd = GetEntityForwardVector(veh) as [number, number, number];
+        SetEntityCoords(ped, vx + fwd[0] * 1.2, vy + fwd[1] * 1.2, vz + 0.8, false, false, false, false);
+        // Throw them with the vehicle's velocity + an outward/upward kick.
         const [pvx = 0, pvy = 0, pvz = 0] = GetEntityVelocity(veh) as [number, number, number];
-        SetEntityVelocity(ped, pvx * 1.4, pvy * 1.4, pvz * 0.6 + 5);
-        SetPedToRagdoll(ped, 8000, 8000, 0, true, true, false);
+        SetEntityVelocity(ped, pvx * 1.5 + fwd[0] * 6, pvy * 1.5 + fwd[1] * 6, pvz * 0.5 + 6);
+        SetPedToRagdoll(ped, 10000, 10000, 0, true, true, false);
         // Die when the ped comes to a standstill (hits the ground).
         let waited = 0;
-        while (waited < 8000) {
+        while (waited < 10000) {
           await sleep(200);
           waited += 200;
           if (!DoesEntityExist(ped)) return;
           const speed = GetEntitySpeed(ped);
-          if (speed < 0.5 && waited > 500) {
+          if (speed < 0.5 && waited > 600) {
             SetEntityHealth(ped, 0);
             return;
           }
@@ -142,8 +148,7 @@ function applyImpact(veh: number, sev: "minor" | "moderate" | "severe"): void {
       })();
     }
   }
-
-  // Tyre burst
+// Tyre burst
   if (sev !== "minor" && prob(sev === "severe" ? 0.8 : 0.4)) {
     const wheel = Math.floor(Math.random() * GetVehicleNumberOfWheels(veh));
     SetVehicleTyreBurst(veh, wheel, true, 1000);

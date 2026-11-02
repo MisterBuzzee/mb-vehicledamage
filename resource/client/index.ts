@@ -119,8 +119,20 @@ function applyImpact(veh: number, sev: "minor" | "moderate" | "severe"): void {
         const [vx = 0, vy = 0, vz = 0] = GetEntityVelocity(veh) as [number, number, number];
         if (!IsPedInAnyVehicle(ped, false)) {
           SetEntityVelocity(ped, vx * 1.4, vy * 1.4, vz * 0.6 + 4);
-          SetPedToRagdoll(ped, 5000, 5000, 0, true, true, false);
-          SetEntityHealth(ped, 0);
+          SetPedToRagdoll(ped, 8000, 8000, 0, true, true, false);
+          // Die when the ped comes to a standstill (hits the ground).
+          let waited = 0;
+          while (waited < 8000) {
+            await sleep(200);
+            waited += 200;
+            if (!DoesEntityExist(ped)) return;
+            const speed = GetEntitySpeed(ped);
+            if (speed < 0.5 && waited > 500) {
+              SetEntityHealth(ped, 0);
+              return;
+            }
+          }
+          if (DoesEntityExist(ped)) SetEntityHealth(ped, 0);
         }
       })();
     }

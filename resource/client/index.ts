@@ -106,6 +106,23 @@ function applyImpact(veh: number, sev: "minor" | "moderate" | "severe"): void {
 
   accidentShake(sev);
 
+  // Eject the driver on hard impacts.
+  if (sev !== "minor" && prob(sev === "severe" ? 0.7 : 0.25)) {
+    const ped = PlayerPedId();
+    const curSpeed = GetEntitySpeed(veh);
+    if (curSpeed > 4) {
+      (async () => {
+        await sleep(50);
+        TaskLeaveVehicle(ped, veh, 256);
+        const [vx = 0, vy = 0, vz = 0] = GetEntityVelocity(veh) as [number, number, number];
+        await sleep(100);
+        if (!IsPedInAnyVehicle(ped, false)) {
+          SetEntityVelocity(ped, vx * 0.6, vy * 0.6, vz * 0.6 + 3);
+        }
+      })();
+    }
+  }
+
   // Tyre burst
   if (sev !== "minor" && prob(sev === "severe" ? 0.8 : 0.4)) {
     const wheel = Math.floor(Math.random() * GetVehicleNumberOfWheels(veh));
